@@ -88,7 +88,7 @@ def get_selection_keyboard(user_data):
     buttons.append([InlineKeyboardButton(text=pool_text, callback_data="CHOOSE_POOL")])
     
     # Gender selection
-    gender_text = f"Gender: {user_data.get(GENDER, 'Not selected')}"
+    gender_text = f"Пол (Юноши/Девушки): {user_data.get(GENDER, 'Не выбран')}"
     buttons.append([InlineKeyboardButton(text=gender_text, callback_data="CHOOSE_GENDER")])
     
     # Event selection
@@ -106,18 +106,6 @@ async def select_pool(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str
     query = update.callback_query
     await query.answer()
     
-    # keyboard = [
-    #     [
-    #         InlineKeyboardButton("25m", callback_data=f"POOL_25"),
-    #         InlineKeyboardButton("50m", callback_data=f"POOL_50"),
-    #     ],
-    #     [InlineKeyboardButton("Back", callback_data="BACK_TO_MENU")],
-    # ]
-    # reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    # await query.edit_message_text(
-    #     text="Select pool length:", reply_markup=reply_markup
-    # )
 
     current_selection = context.user_data.get(POOL_LENGTH, None)
     if current_selection is None:
@@ -141,17 +129,18 @@ async def select_gender(update: Update, context: ContextTypes.DEFAULT_TYPE) -> s
     query = update.callback_query
     await query.answer()
     
-    keyboard = [
-        [
-            InlineKeyboardButton("Female", callback_data=f"GENDER_Female"),
-            InlineKeyboardButton("Male", callback_data=f"GENDER_Male"),
-        ],
-        [InlineKeyboardButton("Back", callback_data="BACK_TO_MENU")],
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    current_selection = context.user_data.get(GENDER, None)
+    if current_selection is None:
+        context.user_data[GENDER] = 'Юноши'
+    elif current_selection == 'Юноши':
+        context.user_data[GENDER] = 'Девушки'
+    else:
+        context.user_data[GENDER] = 'Юноши'
     
+    reply_markup=get_selection_keyboard(context.user_data)
+
     await query.edit_message_text(
-        text="Select gender:", reply_markup=reply_markup
+        text="Continue:", reply_markup=reply_markup
     )
     
     return SELECTING_ACTION
