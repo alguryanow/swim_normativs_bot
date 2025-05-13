@@ -165,7 +165,10 @@ async def select_discipline(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     for subdisc in disciplines:
         row = []
         for discipline in subdisc:
-            row.append(InlineKeyboardButton(discipline, callback_data=f"DISCIPLINE_{discipline}"))
+            btn_text = discipline
+            if DISCIPLINE in context.user_data and context.user_data[DISCIPLINE] == discipline:
+                btn_text = '✅' + btn_text
+            row.append(InlineKeyboardButton(btn_text, callback_data=f"DISCIPLINE_{discipline}"))
         keyboard.append(row)
     
     keyboard.append([InlineKeyboardButton("Back", callback_data="BACK_TO_MENU")])
