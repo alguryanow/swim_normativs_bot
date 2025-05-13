@@ -21,7 +21,7 @@ SHOWING_RESULT = "SHOWING_RESULT"
 # User data keys
 POOL_LENGTH = "pool_length"
 GENDER = "gender"
-EVENT = "event"
+DISCIPLINE = "discipline"
 
 # Sample data - in a real application, this would be loaded from your text file
 def load_data_from_file(filename):
@@ -36,14 +36,14 @@ def get_result(user_data):
     """Get result based on user selections."""
     pool = user_data.get(POOL_LENGTH)
     gender = user_data.get(GENDER)
-    event = user_data.get(EVENT)
+    discipline = user_data.get(DISCIPLINE)
     
-    if not all([pool, gender, event]):
+    if not all([pool, gender, discipline]):
         return "Please complete all selections first."
     
     # In a real application, you would fetch the appropriate data here
     # For example: result = swim_data.get(pool, {}).get(gender, {}).get(event, "No data found")
-    result = f"Result for {pool}m pool, {gender}, {event}"
+    result = f"Result for {pool}m pool, {gender}, {discipline}"
 
     swimming_data = {
             "50, баттерфляй": ["58.80", "48.80", "38.80", "33.80", "30.80", "27.70", "25.70", "24.70", "23.27"],
@@ -65,7 +65,7 @@ def get_result(user_data):
             "200, на спине": ["04:53.20", "04:13.20", "03:27.20", "02:59.20", "02:38.20", "02:22.45", "02:15.45", "02:07.75", "01:57.30"]
     }
 
-    return result + "\n\n" + str(swimming_data[event])
+    return result + "\n\n" + str(swimming_data[discipline])
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
     """Start the conversation and display buttons for the first selection."""
@@ -73,7 +73,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
     context.user_data.clear()
     
     await update.message.reply_text(
-        "Добро пожаловать в таблицу разрядов по плаванию! Выберите длину бассейна, пол и дисциплину:",
+        "Добро пожаловать в таблицу разрядов по плаванию! \nВыберите длину бассейна, пол и дисциплину:",
         reply_markup=get_selection_keyboard(context.user_data)
     )
     
@@ -91,12 +91,12 @@ def get_selection_keyboard(user_data):
     gender_text = f"Пол (Юноши/Девушки): {user_data.get(GENDER, 'Не выбран')}"
     buttons.append([InlineKeyboardButton(text=gender_text, callback_data="CHOOSE_GENDER")])
     
-    # Event selection
-    event_text = f"Event: {user_data.get(EVENT, 'Not selected')}"
-    buttons.append([InlineKeyboardButton(text=event_text, callback_data="CHOOSE_EVENT")])
+    # Discipline selection
+    discipline_text = f"Дисциплина: {user_data.get(DISCIPLINE, 'Не выбрана')}"
+    buttons.append([InlineKeyboardButton(text=discipline_text, callback_data="CHOOSE_DISCIPLINE")])
     
     # Show result button (if all selections are made)
-    if all([POOL_LENGTH in user_data, GENDER in user_data, EVENT in user_data]):
+    if all([POOL_LENGTH in user_data, GENDER in user_data, DISCIPLINE in user_data]):
         buttons.append([InlineKeyboardButton(text="Show Result", callback_data="SHOW_RESULT")])
     
     return InlineKeyboardMarkup(buttons)
@@ -145,34 +145,34 @@ async def select_gender(update: Update, context: ContextTypes.DEFAULT_TYPE) -> s
     
     return SELECTING_ACTION
 
-async def select_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
-    """Handle event selection."""
+async def select_discipline(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
+    """Handle discipline selection."""
     query = update.callback_query
     await query.answer()
     
     # This would normally be loaded from your database
-    events = [
-        "50, баттерфляй", "100, баттерфляй", "200, баттерфляй", 
-        "50, брасс", "100, брасс", "200, брасс",
-        "50, вольный стиль", "100, вольный стиль", "200, вольный стиль",
-        "400, вольный стиль", "800, вольный стиль", "1500, вольный стиль",
-        "200, комплекс", "400, комплекс", "50, на спине", "100, на спине", "200, на спине"
+    disciplines = [
+        ["батт 50", "батт 100", "батт 200"], 
+        ["брасс 50", "брасс 100", "брасс 200"],
+        ["кроль 50", "кроль 100", "кроль 200"],
+        ["кроль 400", "кроль 800", "кроль 1500"],
+        ["комплекс 200", "комплекс 400"], 
+        ["спина 50", "спина 100", "спина 200"]
     ] 
     
     keyboard = []
-    # Create buttons for each event, 2 per row
-    for i in range(0, len(events), 2):
+    # Create buttons for each discipline
+    for subdisc in disciplines:
         row = []
-        row.append(InlineKeyboardButton(events[i], callback_data=f"EVENT_{events[i]}"))
-        if i + 1 < len(events):
-            row.append(InlineKeyboardButton(events[i+1], callback_data=f"EVENT_{events[i+1]}"))
+        for discipline in subdisc:
+            row.append(InlineKeyboardButton(discipline, callback_data=f"DISCIPLINE_{discipline}"))
         keyboard.append(row)
     
     keyboard.append([InlineKeyboardButton("Back", callback_data="BACK_TO_MENU")])
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await query.edit_message_text(
-        text="Select event:", reply_markup=reply_markup
+        text="Select discipline:", reply_markup=reply_markup
     )
     
     return SELECTING_ACTION
@@ -196,9 +196,9 @@ async def handle_selection(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             text="Please continue with your selections:",
             reply_markup=get_selection_keyboard(context.user_data)
         )
-    elif data.startswith("EVENT_"):
-        # Remove the EVENT_ prefix
-        context.user_data[EVENT] = data[6:]
+    elif data.startswith("DISCIPLINE_"):
+        # Remove the DISCIPLINE_ prefix
+        context.user_data[DISCIPLINE] = data.split("_")[1]
         await query.edit_message_text(
             text="Please continue with your selections:",
             reply_markup=get_selection_keyboard(context.user_data)
@@ -259,10 +259,10 @@ def main() -> None:
             SELECTING_ACTION: [
                 CallbackQueryHandler(select_pool, pattern="^CHOOSE_POOL$"),
                 CallbackQueryHandler(select_gender, pattern="^CHOOSE_GENDER$"),
-                CallbackQueryHandler(select_event, pattern="^CHOOSE_EVENT$"),
+                CallbackQueryHandler(select_discipline, pattern="^CHOOSE_DISCIPLINE$"),
                 CallbackQueryHandler(show_result, pattern="^SHOW_RESULT$"),
                 CallbackQueryHandler(back_to_menu, pattern="^BACK_TO_MENU$"),
-                CallbackQueryHandler(handle_selection, pattern="^(POOL_|GENDER_|EVENT_)"),
+                CallbackQueryHandler(handle_selection, pattern="^(POOL_|GENDER_|DISCIPLINE_)"),
             ],
         },
         fallbacks=[CommandHandler("end", end)],
