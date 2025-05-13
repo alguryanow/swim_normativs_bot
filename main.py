@@ -73,7 +73,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
     context.user_data.clear()
     
     await update.message.reply_text(
-        "Welcome to the Swimming Records Bot! Please make your selections:",
+        "Добро пожаловать в таблицу разрядов по плаванию! Выберите длину бассейна, пол и дисциплину:",
         reply_markup=get_selection_keyboard(context.user_data)
     )
     
@@ -84,7 +84,7 @@ def get_selection_keyboard(user_data):
     buttons = []
     
     # Pool length selection
-    pool_text = f"Pool: {user_data.get(POOL_LENGTH, 'Not selected')}"
+    pool_text = f"Бассейн (25м/50м): {user_data.get(POOL_LENGTH, 'Не выбран')}"
     buttons.append([InlineKeyboardButton(text=pool_text, callback_data="CHOOSE_POOL")])
     
     # Gender selection
@@ -106,19 +106,34 @@ async def select_pool(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str
     query = update.callback_query
     await query.answer()
     
-    keyboard = [
-        [
-            InlineKeyboardButton("25m", callback_data=f"POOL_25"),
-            InlineKeyboardButton("50m", callback_data=f"POOL_50"),
-        ],
-        [InlineKeyboardButton("Back", callback_data="BACK_TO_MENU")],
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    # keyboard = [
+    #     [
+    #         InlineKeyboardButton("25m", callback_data=f"POOL_25"),
+    #         InlineKeyboardButton("50m", callback_data=f"POOL_50"),
+    #     ],
+    #     [InlineKeyboardButton("Back", callback_data="BACK_TO_MENU")],
+    # ]
+    # reply_markup = InlineKeyboardMarkup(keyboard)
     
+    # await query.edit_message_text(
+    #     text="Select pool length:", reply_markup=reply_markup
+    # )
+
+    current_selection = context.user_data.get(POOL_LENGTH, None)
+    if current_selection is None:
+        context.user_data[POOL_LENGTH] = 25
+    elif current_selection == 25:
+        context.user_data[POOL_LENGTH] = 50
+    else:
+        context.user_data[POOL_LENGTH] = 25
+    
+    reply_markup=get_selection_keyboard(context.user_data)
+
     await query.edit_message_text(
-        text="Select pool length:", reply_markup=reply_markup
+        text="Continue:", reply_markup=reply_markup
     )
-    
+
+
     return SELECTING_ACTION
 
 async def select_gender(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
