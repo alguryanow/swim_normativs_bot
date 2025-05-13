@@ -1,4 +1,5 @@
 import logging
+import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
@@ -264,7 +265,7 @@ async def end(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 def main() -> None:
     """Run the bot."""
     # Create the Application
-    application = Application.builder().token("7605949549:AAGnZXZmNXaUpyL9AnvSFr_NjybKdsFnkkQ").build()
+    application = Application.builder().token(os.environ.get("TELEGRAM_BOT_TOKEN")).build()
     
     # Load data from file
     # global swim_data
