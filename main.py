@@ -95,6 +95,24 @@ def get_selection_keyboard(user_data):
     discipline_text = f"Дисциплина: {user_data.get(DISCIPLINE, 'Не выбрана')}"
     buttons.append([InlineKeyboardButton(text=discipline_text, callback_data="CHOOSE_DISCIPLINE")])
     
+    # Create buttons for each discipline
+    disciplines = [
+        ["батт 50", "батт 100", "батт 200"], 
+        ["брасс 50", "брасс 100", "брасс 200"],
+        ["кроль 50", "кроль 100", "кроль 200"],
+        ["кроль 400", "кроль 800", "кроль 1500"],
+        ["комплекс 200", "комплекс 400"], 
+        ["спина 50", "спина 100", "спина 200"]
+    ] 
+    for subdisc in disciplines:
+        row = []
+        for discipline in subdisc:
+            btn_text = discipline
+            if DISCIPLINE in user_data and user_data[DISCIPLINE] == discipline:
+                btn_text = '✅' + btn_text
+            row.append(InlineKeyboardButton(btn_text, callback_data=f"DISCIPLINE_{discipline}"))
+        buttons.append(row)
+    
     # Show result button (if all selections are made)
     if all([POOL_LENGTH in user_data, GENDER in user_data, DISCIPLINE in user_data]):
         buttons.append([InlineKeyboardButton(text="Show Result", callback_data="SHOW_RESULT")])
