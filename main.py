@@ -29,7 +29,7 @@ disciplines = [
     ["брасс 50", "брасс 100", "брасс 200"],
     ["кроль 50", "кроль 100", "кроль 200"],
     ["кроль 400", "кроль 800", "кроль 1500"],
-    ["комплекс 200", "комплекс 400"], 
+    ["комплекс 100", "комплекс 200", "комплекс 400"], 
     ["спина 50", "спина 100", "спина 200"]
 ] 
 
@@ -69,8 +69,8 @@ male_50_data = {
         disciplines[3][0]: ["08:35.00", "07:39.00", "06:43.00", "05:47.00", "05:06.00", "04:31.00", "04:14.50", "04:02.00", "03:47.71"],
         disciplines[3][1]: ["18:38.00", "16:38.00", "14:38.00", "12:36.00", "11:14.00", "09:37.00", "08:58.00", "08:25.00", "07:52.60"],
         disciplines[3][2]: ["35:52.50", "31:52.50", "27:52.00", "23:50.00", "20:50.00", "18:29.00", "17:29.00", "15:51.00", "15:06.19"],
-        disciplines[4][0]: ["04:48.00", "04:08.00", "03:33.00", "03:08.00", "02:44.00", "02:25.75", "02:17.25", "02:09.75", "01:58.59"],
-        disciplines[4][1]: ["09:24.00", "08:28.00", "07:32.00", "06:37.00", "05:48.00", "05:07.00", "04:48.00", "04:34.00", "04:13.76"],
+        disciplines[4][1]: ["04:48.00", "04:08.00", "03:33.00", "03:08.00", "02:44.00", "02:25.75", "02:17.25", "02:09.75", "01:58.59"],
+        disciplines[4][2]: ["09:24.00", "08:28.00", "07:32.00", "06:37.00", "05:48.00", "05:07.00", "04:48.00", "04:34.00", "04:13.76"],
         disciplines[5][0]: ["01:02.30", "52.30", "42.30", "36.30", "32.80", "29.95", "28.15", "26.65", "24.85"],
         disciplines[5][1]: ["02:17.60", "01:57.60", "01:35.10", "01:22.60", "01:14.10", "01:06.00", "01:02.00", "58.50", "53.72"],
         disciplines[5][2]: ["04:53.20", "04:13.20", "03:27.20", "02:59.20", "02:38.20", "02:22.45", "02:15.45", "02:07.75", "01:57.30"]
@@ -198,6 +198,12 @@ def on_btn_pool_click(context: ContextTypes.DEFAULT_TYPE) -> None:
     else:
         context.user_data[POOL_LENGTH] = 25
 
+    # logger.info(f"{context.user_data=}")
+    if context.user_data[POOL_LENGTH] == 50:
+        if DISCIPLINE in context.user_data and context.user_data[DISCIPLINE] == 'комплекс 100':
+            #-- для 50м бассейна нет норматива "комплекс 100"
+            context.user_data[DISCIPLINE] = ''
+
 
 def on_btn_gender_click(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle BTN_GENDER click"""
@@ -214,7 +220,7 @@ def on_btn_gender_click(context: ContextTypes.DEFAULT_TYPE) -> None:
 async def handle_btn_click(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
     """Handle button click"""
     query = update.callback_query
-    await query.answer()
+    await query.answer()    # This acknowledges the button press
     
     data = query.data
     
@@ -225,8 +231,13 @@ async def handle_btn_click(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     elif data == "BTN_DISCIPLINE_CURRENT":
         pass
     elif data.startswith("BTN_DISCIPLINE_NEW_"):
-        # Remove the DISCIPLINE_ prefix
-        context.user_data[DISCIPLINE] = data.split("_")[3]
+        new_discipline = data.split("_")[3]
+        if new_discipline == 'комплекс 100':
+            if POOL_LENGTH in context.user_data and context.user_data[POOL_LENGTH] == 50:
+                await query.answer("Для бассейна 50 м нет норматива на 'комплекс 100'!", show_alert=True)  #--TODO: не работает
+                return SELECTING_ACTION
+
+        context.user_data[DISCIPLINE] = new_discipline
 
     result = get_result(context.user_data)
     if result is not None:
