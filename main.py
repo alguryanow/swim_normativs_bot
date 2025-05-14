@@ -252,6 +252,8 @@ async def handle_btn_click(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     await query.answer()    # This acknowledges the button press
     
     data = query.data
+
+    logger.info(f"handle_btn_click(): user={update.effective_user.id}, data={data}")
     
     if data == "BTN_POOL":
         on_btn_pool_click(context)
