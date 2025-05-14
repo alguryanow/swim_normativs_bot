@@ -1,4 +1,5 @@
 import logging
+from logging.handlers import RotatingFileHandler
 import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
@@ -9,9 +10,36 @@ from telegram.ext import (
     ConversationHandler,
 )
 
+
+# Set up directory for log files if it doesn't exist
+log_dir = "logs"
+os.makedirs(log_dir, exist_ok=True)
+log_file = os.path.join(log_dir, "swim_normatives_bot.log")
+
+# Configure logging format
+log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+formatter = logging.Formatter(log_format)
+
+# Set up file handler with rotation (prevents logs from growing too large)
+file_handler = RotatingFileHandler(
+    log_file,
+    maxBytes=10485760,  # 10MB
+    backupCount=5,       # Keep 5 backup logs
+    encoding="utf-8"
+)
+file_handler.setFormatter(formatter)
+file_handler.setLevel(logging.INFO)
+
+# Set up console handler
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
+console_handler.setLevel(logging.INFO)
+
 # Enable logging
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+    level=logging.INFO,
+    format=log_format,
+    handlers=[file_handler, console_handler]
 )
 logger = logging.getLogger(__name__)
 
