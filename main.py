@@ -243,12 +243,14 @@ async def handle_btn_click(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     result = get_result(context.user_data)
     if result is not None:
         reply_text = result
+        reply_text += '\nИсточник: [SportCubes.ru](https://sportcubes.ru/?page=razr&mod=all)'
     else:
         reply_text = START_MSG
 
     await query.edit_message_text(
         text=reply_text, 
         parse_mode="Markdown",
+        disable_web_page_preview=True,
         reply_markup=get_selection_keyboard(context.user_data)
     )
 
